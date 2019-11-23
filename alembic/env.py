@@ -37,14 +37,10 @@ target_metadata = db
 # ... etc.
 
 
-
 def get_url():
-    user = os.getenv("DB_USER")
-    password = os.getenv("DB_PASSWORD")
-    server = os.getenv("DB_HOST")
-    db = os.getenv("DB_NAME")
-    port = os.getenv("DB_PORT")
-    return f"postgresql://{user}:{password}@{server}:{port}/{db}"
+    from app.core.config import DB_URL
+
+    return DB_URL
 
 
 def run_migrations_offline():
@@ -82,13 +78,11 @@ def run_migrations_online():
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        url=get_url()
+        url=get_url(),
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

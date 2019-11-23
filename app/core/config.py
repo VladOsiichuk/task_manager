@@ -1,11 +1,11 @@
 import os
 from datetime import timedelta
 
-DB_NAME = os.getenv("DB_NAME")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_USER = os.getenv("DB_USER")
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME", "fast_api")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "django1admin")
+DB_USER = os.getenv("DB_USER", "django1admin")
+DB_HOST = os.getenv("DB_HOST", "172.17.0.3")
+DB_PORT = os.getenv("DB_PORT", 5432)
 
 DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 

@@ -25,10 +25,7 @@ class JWTAuthentication:
             raise Unauthorized("Token schema invalid!")
 
         data = await self.payload(param)
-        user: User = await User.query.where(User.id == data[self.pk]).gino.first()
-        if not user:
-            raise Unauthorized("Token is incorrect!")
-        return user
+        return await self.get_user_or_error(data)
 
     async def token_pair_generate(self, data: dict) -> dict:
 
@@ -97,6 +94,12 @@ class JWTAuthentication:
 
         new_access = await self.access_generate(payload["user_data"])
         return {"token": new_access, "expire_in": JWT_SETTINGS["ACCESS_EXPIRE_IN"]}
+
+    async def get_user_or_error(self, data):
+        user: User = await User.query.where(User.id == data.get(self.pk)).gino.first()
+        if not user:
+            raise Unauthorized("Token is incorrect!")
+        return user
 
 
 jwt_auth = JWTAuthentication()

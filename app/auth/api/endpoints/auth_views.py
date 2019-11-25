@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
 from app.auth.jwt_auth import jwt_auth
-from app.auth.models import (
+from app.auth.models.auth_models import (
     UserRegisterRequestModel,
     UserRegisterResponseModel,
     UserLoginRequestModel,
     UserLoginResponseModel,
+    UserAuthenticateRequestModel,
 )
 from app.core.exceptions import Unauthorized
+from app.core.pydantic.models import ExceptionModel
 from app.db.models import User
 
 router = APIRouter()
@@ -40,8 +42,18 @@ async def login(credentials: UserLoginRequestModel):
 
 
 @router.post(
-    "/authenticate/", status_code=200, response_model=UserRegisterResponseModel
+    "/authenticate/",
+    status_code=200,
+    response_model=UserRegisterResponseModel,
+    responses={401: {"model": ExceptionModel}},
 )
-async def authenticate(user: User = Depends(jwt_auth)):
-    print(user)
+async def authenticate(data: UserAuthenticateRequestModel):
+    token = data.token
+
+    data = await jwt_auth.payload(token)
+
+    user = await User.query.where(User.id == data.get(jwt_auth.pk)).gino.first()
+    if not user:
+        raise Unauthorized
+
     return UserRegisterResponseModel.from_orm(user)

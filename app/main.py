@@ -1,15 +1,13 @@
-from fastapi import FastAPI, Depends, APIRouter
-from fastapi.security import HTTPBasic, HTTPBearer
+from fastapi import FastAPI, APIRouter
 
 from app.api.urls import router
 from app.auth.api.routing import router as auth_router
 from app.core.config import DEBUG
-
 from app.db.utils import close_connection, create_connection
 
 api_router = APIRouter()
 api_router.include_router(router)
-api_router.include_router(auth_router)
+api_router.include_router(auth_router, prefix="/auth")
 
 app = FastAPI(debug=DEBUG)
 
@@ -22,4 +20,3 @@ app.include_router(api_router, prefix="/api")
 @app.get("/")
 async def index():
     return {"success": False}
-

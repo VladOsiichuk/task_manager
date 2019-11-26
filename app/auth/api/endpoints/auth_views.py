@@ -19,10 +19,7 @@ router = APIRouter()
 async def register(user: UserRegisterRequestModel):
     await user.db_validate(raise_exception=True)
     db_user = User(
-        first_name=user.first_name,
-        last_name=user.last_name,
-        email=user.email,
-        mobile_phone=user.mobile_phone,
+        first_name=user.first_name, last_name=user.last_name, email=user.email
     )
     db_user.hash_password(user.password)
     await db_user.create()

@@ -1,8 +1,9 @@
 import uuid
 
 from gino import Gino
-from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.auth.utils import pwd_context
@@ -20,28 +21,12 @@ class BaseModel(db.Model):
     __abstract__ = True
 
 
-class Project(BaseModel):
-    __tablename__ = "projects"
-
-    name = Column(String(128))
-
-
-class Task(BaseModel):
-    __tablename__ = "tasks"
-
-    title = Column(String(64))
-    description = Column(String(2048))
-    deadline = Column(Date, default=None)
-    executor = None
-
-
 class User(BaseModel):
     __tablename__ = "users"
 
     first_name = Column(String(128), default="")
     last_name = Column(String(128), default="")
     email = Column(String(256), default="", unique=True)
-    mobile_phone = Column(String(64), default="", unique=True)
     password = Column(String(1024))
 
     def password_is_valid(self, plain_password: str) -> bool:
@@ -56,3 +41,42 @@ class User(BaseModel):
         """
 
         self.password = pwd_context.hash(plain_password)
+
+
+class Board(BaseModel):
+    __tablename__ = "boards"
+
+    name = Column(String(128))
+
+    author_id = Column(Integer, ForeignKey(User.id))
+    author = relationship("User", lazy="joined", foreign_keys="Board.author_id")
+
+
+class UserOnBoard(BaseModel):
+    __tablename__ = "user_boards"
+
+    ADMIN = "ADMIN"
+    MODERATOR = "MODERATOR"
+    STAFF = "STAFF"
+
+    user_id = Column(Integer, ForeignKey(User.id))
+    user = relationship("User", lazy="joined", foreign_keys="UserOnBoard.user_id")
+
+    role = Column(String(32), default=STAFF)
+
+    board_id = Column(Integer, ForeignKey(Board.id))
+    board = relationship("Board", lazy="joined", foreign_keys="UserOnBoard.board_id")
+
+
+class Task(BaseModel):
+    __tablename__ = "tasks"
+
+    title = Column(String(64))
+    description = Column(String(2048))
+    deadline = Column(Date, default=None)
+
+    author_id = Column(Integer, ForeignKey(User.id))
+    author = relationship("User", lazy="joined", foreign_keys="Task.author_id")
+
+    executor_id = Column(Integer, ForeignKey(User.id))
+    executor = relationship("User", lazy="joined", foreign_keys="Task.author_id")

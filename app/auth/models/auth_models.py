@@ -16,16 +16,10 @@ class UserBaseModel(ProjectPydanticBase):
     first_name: Optional[str] = ""
     last_name: Optional[str] = ""
     email: EmailStr
-    mobile_phone: str = Schema(
-        default="", max_length=15, min_length=4, regex=MOBILE_PHONE_REGEX
-    )
 
     class Config:
         orm_mode = True
-        db_validators = {
-            "mobile_phone": [validate_on_unique],
-            "email": [validate_on_unique],
-        }
+        db_validators = {"email": [validate_on_unique]}
         main_model = User
 
 
@@ -35,7 +29,7 @@ class UserRegisterRequestModel(UserBaseModel):
 
     @validator("password")
     def passwords_match(cls, v, values, **kwargs):
-        if values["password_confirm"] != v:
+        if values.get("password_confirm") != v:
             raise ValueError("Passwords don't match")
         return v
 

@@ -1,4 +1,4 @@
-from app.db.models import db
+from app.db.models import *
 from app.core.config import DB_URL
 
 

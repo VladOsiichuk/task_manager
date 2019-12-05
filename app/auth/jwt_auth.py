@@ -25,7 +25,9 @@ class JWTAuthentication:
             raise Unauthorized("Token schema invalid!")
 
         data = await self.payload(param)
-        return await self.get_user_or_error(data)
+        user = await self.get_user_or_error(data)
+        request.scope["user"] = user
+        return user
 
     async def token_pair_generate(self, data: dict) -> dict:
 
@@ -44,7 +46,7 @@ class JWTAuthentication:
         }
 
     @classmethod
-    async def payload(cls, token: str, verify: bool = False) -> dict:
+    async def payload(cls, token: str, verify: bool = True) -> dict:
         try:
 
             payload = jwt.decode(

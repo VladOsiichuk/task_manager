@@ -5,9 +5,10 @@ bcrypt==3.1.7
 cffi==1.13.2
 Click==7.0
 contextvars==2.4
+dataclasses==0.7
 dnspython==1.16.0
 email-validator==1.0.5
-fastapi==0.42.0
+fastapi==0.44.0
 gino==0.8.3
 h11==0.8.1
 httptools==0.0.13
@@ -18,7 +19,7 @@ MarkupSafe==1.1.1
 passlib==1.7.1
 psycopg2==2.8.4
 pycparser==2.19
-pydantic==0.32.2
+pydantic==1.1.1
 PyJWT==1.7.1
 python-dateutil==2.8.1
 python-editor==1.0.4

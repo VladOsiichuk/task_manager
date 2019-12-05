@@ -17,7 +17,7 @@ router = APIRouter()
 
 @router.post("/register/", response_model=UserRegisterResponseModel, status_code=201)
 async def register(user: UserRegisterRequestModel):
-    await user.db_validate(raise_exception=True)
+    await user.run_model_validation(raise_exception=True)
     db_user = User(
         first_name=user.first_name, last_name=user.last_name, email=user.email
     )

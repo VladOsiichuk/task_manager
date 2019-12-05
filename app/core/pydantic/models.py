@@ -1,38 +1,70 @@
-from typing import Dict, List
+from typing import Dict, List, Optional, Any, Type
+from uuid import UUID
 
 from fastapi import HTTPException
-from pydantic import BaseModel
-from app.core.exceptions import DBError
+from pydantic import BaseModel, validator
+from app.core.exceptions import DBError, Http422
 
 
 class ProjectPydanticBase(BaseModel):
-    async def db_validate(self, raise_exception: bool = False) -> dict:
+    async def validate_from_config(self) -> dict:
         """
-        :param raise_exception: should exception be rised or none
         :return: dict of errors if any
         """
 
-        model = self.__config__.main_model
-
         errors: Dict[str, List] = {}
+
+        if not all(
+            (
+                hasattr(self.__config__, "main_model"),
+                hasattr(self.__config__, "db_validators"),
+            )
+        ):
+            return errors
+
+        model = self.__config__.main_model
 
         for field, validators in self.__config__.db_validators.items():
             value = getattr(self, field)
 
             for validate in validators:
                 try:
-                    self.__dict__[field] = await validate(model, field, value) or value
+                    data = await validate(model, field, value)
+                    if data is not None:
+                        setattr(self, model.__name__.lower(), data)
                 except DBError as e:
-                    if field not in errors:
-                        errors[field] = list()
+                    errors[field] = errors.get(field) or []
                     errors[field].append(e.msg)
 
-        if raise_exception and errors:
-            raise HTTPException(status_code=400, detail=errors)
+        return errors
 
-        else:
-            return errors
+    async def db_validate(self, *args, raise_exception: bool = True, **kwargs) -> dict:
+        errors = await self.validate_from_config()
+        await self.run_model_validation(errors, *args, **kwargs)
+
+        if errors and raise_exception:
+            raise Http422(detail=errors)
+
+        return errors
+
+    async def run_model_validation(self, *args, **kwargs):
+        pass
+
+    class Config:
+        orm_mode = True
+        error_msg_templates = "{} {} {}"
+
+    @classmethod
+    def validate(cls: Type["Model"], value: Any):
+        print("123")
+        return super().validate(value)
+
+    @validator("uuid", pre=True, check_fields=False)
+    def set_uuid_hex(cls, v):
+        if v and isinstance(v, UUID):
+            return v.hex
+        return v
 
 
 class ExceptionModel(BaseModel):
-    detail: str
+    detail: Optional[str] = ""

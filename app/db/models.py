@@ -42,14 +42,25 @@ class User(BaseModel):
 
         self.password = pwd_context.hash(plain_password)
 
+    def __str__(self):
+        return self.email
+
 
 class Board(BaseModel):
     __tablename__ = "boards"
 
     name = Column(String(128))
 
-    author_id = Column(Integer, ForeignKey(User.id))
-    author = relationship("User", lazy="joined", foreign_keys="Board.author_id")
+    author_id = Column(Integer, ForeignKey("users.id"))
+    author = relationship("User")
+
+
+class BoardColumn(BaseModel):
+    __tablename__ = "board_columns"
+    name = Column(String(128))
+
+    board_id = Column(Integer, ForeignKey(Board.id))
+    board = relationship("Board", lazy="joined", foreign_keys="BoardColumn.board_id")
 
 
 class UserOnBoard(BaseModel):

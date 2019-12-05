@@ -4,7 +4,7 @@ from typing import Optional, Any, Type, List, Dict, Union
 from fastapi import HTTPException
 
 from app.core.constants import MOBILE_PHONE_REGEX
-from pydantic import BaseModel, EmailStr, BaseConfig, validator, UUID4, Schema
+from pydantic import BaseModel, EmailStr, BaseConfig, validator, UUID4, Schema, Field
 
 from app.core.exceptions import DBError
 from app.core.pydantic.models import ProjectPydanticBase
@@ -19,8 +19,6 @@ class UserBaseModel(ProjectPydanticBase):
 
     class Config:
         orm_mode = True
-        db_validators = {"email": [validate_on_unique]}
-        main_model = User
 
 
 class UserRegisterRequestModel(UserBaseModel):
@@ -33,19 +31,27 @@ class UserRegisterRequestModel(UserBaseModel):
             raise ValueError("Passwords don't match")
         return v
 
+    @validator("email")
+    def email_is_valid(cls, v, values, **kwargs):
+        raise ValueError("Incorrect email")
+
+    async def run_model_validation(self, raise_exception: bool = True):
+        errors = await self.db_validate()
+        if errors and raise_exception:
+            raise HTTPException(400, detail=errors)
+        return errors
+
     class Config:
+        db_validators = {"email": [validate_on_unique]}
+        main_model = User
         orm_mode = False
 
 
 class UserRegisterResponseModel(UserBaseModel):
-    uuid: Optional[UUID4] = ""
-
-    @validator("uuid")
-    def set_uuid_hex(cls, v):
-        return v.hex
+    uuid: str
 
     class Config:
-        use_orm = True
+        orm_mode = True
 
 
 class UserLoginRequestModel(BaseModel):

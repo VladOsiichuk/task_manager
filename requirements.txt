@@ -8,7 +8,7 @@ contextvars==2.4
 dataclasses==0.7
 dnspython==1.16.0
 email-validator==1.0.5
-fastapi==0.44.0
+fastapi==0.65.2
 gino==0.8.3
 h11==0.8.1
 httptools==0.0.13
